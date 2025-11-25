@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Versandaktionen</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background-color: #faf9f8;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background-color: #f3f2f1;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #323130;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #fff;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .sidebar li:hover {
+            background: #e1f3ff;
+            transform: translateX(4px);
+        }
+
+        .sidebar li i {
+            font-size: 20px;
+            color: #0078d4;
+        }
+
+        /* Content */
+        .content {
+            flex: 1;
+            padding: 30px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            color: #323130;
+        }
+
+        p.description {
+            margin-bottom: 20px;
+            color: #605e5c;
+            font-size: 14px;
+        }
+
+        /* Upload Box */
+        .upload-box {
+            border: 3px dashed #0078d4;
+            padding: 50px;
+            text-align: center;
+            border-radius: 10px;
+            background: #fff;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            color: #323130;
+        }
+
+        .upload-box.dragover {
+            background-color: #e1f3ff;
+            border-color: #005a9e;
+        }
+
+        .upload-box i {
+            font-size: 60px;
+            color: #0078d4;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        /* Dropdown */
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            border-color: #0078d4;
+            outline: none;
+        }
+
+        #templateDisplay {
+            padding: 15px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            min-height: 60px;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #605e5c;
+            margin-top: 8px;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .sticky {
+            position: sticky;
+            top: 0;
+            background: #faf9f8;
+            padding: 10px 0;
+            z-index: 10;
+        }
+
+        button {
+            background-color: #0078d4;
+            color: #fff;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #005a9e;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+
+        th {
+            background: #f3f2f1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <h3>Aktionen</h3>
+            <ul>
+                <li onclick="showSection('csv')"><i>🏢</i> Firmen Update</li>
+                <li onclick="showSection('template')"><i>✉️</i> E-Mail Versand</li>
+            </ul>
+        </aside>
+        <main class="content">
+            <!-- CSV Section -->
+            <div id="csvSection">
+                <h2>Firmen Update: Versandaktion = Ja</h2>
+                <p class="description">
+                    Bitte laden Sie eine CSV-Datei hoch, die die Spalten <strong>ID, Name, Versandaktion</strong>
+                    enthält.
+                    In der Spalte <strong>Versandaktion</strong> muss für alle Firmen <strong>Ja</strong> stehen.
+                </p>
+                <div class="upload-box" id="dropZone">
+                    <i>🏢</i>
+                    <p>Datei hier ablegen oder klicken<br><small>(Nur .csv erlaubt)</small></p>
+                </div>
+                <input type="file" id="csvFile" accept=".csv" style="display:none" />
+
+                <!-- Sticky Button -->
+                <div class="button-group sticky">
+                    <button onclick="confirmAndSend()">Firmen updaten</button>
+                </div>
+
+                <div id="csvTableContainer"></div>
+                <pre id="outputResult"></pre>
+            </div>
+
+            <!-- Template Section -->
+            <div id="templateSection" style="display:none">
+                <h2>E-Mail Versand</h2>
+                <p class="description">
+                    Alle Firmen, bei denen <strong>Versandaktion = Ja</strong> gesetzt ist, erhalten die ausgewählte
+                    E-Mail-Vorlage.
+                    <br><strong>Tipp:</strong> Testen Sie den Versand zuerst mit 1–3 Firmen, bevor Sie alle anschreiben.
+                </p>
+                <select id="templateSelect" onchange="showTemplate()"></select>
+                <div id="templateDisplay">Template wird hier angezeigt...</div>
+                <p class="hint">Hinweis: Die Vorschau kann von der tatsächlichen E-Mail abweichen. Formatierungen oder
+                    Bilder werden ggf. nicht korrekt angezeigt.</p>
+                <div class="button-group">
+                    <button onclick="sendTemplate()">E-Mail versenden</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let csvString = "";
+        let templates = {};
+
+        function showSection(section) {
+            document.getElementById('csvSection').style.display = section === 'csv' ? 'block' : 'none';
+            document.getElementById('templateSection').style.display = section === 'template' ? 'block' : 'none';
+        }
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('csvFile');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        function handleFile(file) {
+            if (!file.name.toLowerCase().endsWith(".csv")) {
+                alert("Nur CSV-Dateien sind erlaubt!");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                csvString = e.target.result;
+                const rows = csvString.split(/\r?\n/).filter(row => row.trim() !== "").map(row => row.split(";"));
+                renderTable(rows);
+            };
+            reader.readAsText(file);
+        }
+
+        function renderTable(rows) {
+            let html = "<table><thead><tr>";
+            rows[0].forEach(header => html += `<th>${header}</th>`);
+            html += "</tr></thead><tbody>";
+            rows.slice(1).forEach(row => {
+                if (row.length > 1) {
+                    html += "<tr>";
+                    row.forEach(cell => html += `<td>${cell}</td>`);
+                    html += "</tr>";
+                }
+            });
+            html += "</tbody></table>";
+            document.getElementById("csvTableContainer").innerHTML = html;
+        }
+
+        // Action-Aufruf für Firmen Update
+        function confirmAndSend() {
+            if (!csvString) {
+                alert("Keine CSV-Daten vorhanden. Bitte zuerst hochladen.");
+                return;
+            }
+            const confirmed = confirm("Achtung! Sie sind dabei, das Feld 'Versandaktion' in allen Firmen auf 'Ja' zu setzen. Möchten Sie fortfahren?");
+            if (confirmed) {
+                callVersandaktionAction("FirmenUpdate", csvString);
+            }
+        }
+
+        // Action-Aufruf für E-Mail Versand
+        function sendTemplate() {
+            const selectedId = document.getElementById("templateSelect").value;
+            if (!selectedId) {
+                alert("Bitte ein Template auswählen!");
+                return;
+            }
+
+            // Kunden zählen, die dgp_mailingcampaign_logic befüllt haben
+            parent.Xrm.WebApi.retrieveMultipleRecords("account", "?$select=accountid&$filter=dgp_mailingcampaign_logic ne null").then(
+                function success(result) {
+                    const count = result.entities.length;
+                    const confirmed = confirm(`Es werden E-Mails an ${count} Firmen versendet. Sind Sie sicher?`);
+                    if (confirmed) {
+                        // Template GUID als Input übergeben
+                        callVersandaktionAction("EmailVersenden", selectedId);
+                    }
+                },
+                function error(error) {
+                    alert("Fehler beim Abrufen der Kunden: " + error.message);
+                }
+            );
+        }
+
+        // Gemeinsame Funktion für Action-Aufruf
+        function callVersandaktionAction(type, input) {
+            var request = {
+                Type: type,
+                Input: input,
+                getMetadata: function () {
+                    return {
+                        boundParameter: null,
+                        parameterTypes: {
+                            Type: { typeName: "Edm.String", structuralProperty: 1 },
+                            Input: { typeName: "Edm.String", structuralProperty: 1 }
+                        },
+                        operationType: 0,
+                        operationName: "dgp_VersandaktionAction"
+                    };
+                }
+            };
+
+            parent.Xrm.WebApi.online.execute(request).then(
+                function success(response) {
+                    response.json().then(function (result) {
+                        let outputValue = result.Output || result["dgp_Output"] || result["output"] || "Kein Output gefunden";
+                        alert("Ergebnis: " + outputValue);
+                    });
+                },
+                function error(error) {
+                    console.error(error.message);
+                    alert("Fehler beim Ausführen der Action: " + error.message);
+                }
+            );
+        }
+
+        // Templates laden
+        window.onload = function () {
+            loadTemplates();
+        };
+        function loadTemplates() {
+            parent.Xrm.WebApi.retrieveMultipleRecords("template", "?$select=title,body,templateid&$filter=templatetypecode eq 'account'").then(
+                function success(result) {
+                    const select = document.getElementById("templateSelect");
+                    select.innerHTML = "<option value=''>-- Bitte wählen --</option>";
+                    result.entities.forEach(template => {
+                        templates[template.templateid] = template.body;
+                        const option = document.createElement("option");
+                        option.value = template.templateid;
+                        option.textContent = template.title;
+                        select.appendChild(option);
+                    });
+                },
+                function error(error) {
+                    alert("Templates konnten nicht geladen werden.");
+                }
+            );
+        }
+        function showTemplate() {
+            const selectedId = document.getElementById("templateSelect").value;
+            let content = selectedId ? templates[selectedId] : "Template wird hier angezeigt...";
+            content = content.replace(/<!\[CDATA\[/g, "").replace(/\]\]>/g, "");
+            document.getElementById("templateDisplay").innerHTML = content;
+        }
+    </script>
+</body>
