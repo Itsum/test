@@ -180,10 +180,52 @@
         th {
             background: #f3f2f1;
         }
+
+        #loadingOverlay {
+            display: none;
+            /* Standardmäßig ausgeblendet */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: #323130;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0078d4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
 <body>
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <h2>Verarbeitung läuft...</h2>
+        <p>Bitte schließen Sie dieses Fenster nicht.</p>
+        <p><small>Die Daten werden hochgeladen und verarbeitet.</small></p>
+    </div>
     <div class="layout">
         <aside class="sidebar">
             <h3>Aktionen</h3>
@@ -235,15 +277,22 @@
         </main>
     </div>
 
-    <script>
+   <script>
         let csvString = "";
+        let currentFile = null;
         let templates = {};
 
+        // --- UI Steuerung ---
         function showSection(section) {
             document.getElementById('csvSection').style.display = section === 'csv' ? 'block' : 'none';
             document.getElementById('templateSection').style.display = section === 'template' ? 'block' : 'none';
         }
 
+        function showLoading(isVisible) {
+            document.getElementById('loadingOverlay').style.display = isVisible ? 'flex' : 'none';
+        }
+
+        // --- Drag & Drop und File Input ---
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('csvFile');
 
@@ -269,6 +318,9 @@
                 alert("Nur CSV-Dateien sind erlaubt!");
                 return;
             }
+            currentFile = file; // Datei global speichern für späteren Upload
+            
+            // Vorschau rendern
             const reader = new FileReader();
             reader.onload = function (e) {
                 csvString = e.target.result;
@@ -293,19 +345,101 @@
             document.getElementById("csvTableContainer").innerHTML = html;
         }
 
-        // Action-Aufruf für Firmen Update
+        // --- Hauptlogik: Upload & Action Chain ---
         function confirmAndSend() {
-            if (!csvString) {
-                alert("Keine CSV-Daten vorhanden. Bitte zuerst hochladen.");
+            if (!currentFile) {
+                alert("Keine CSV-Datei vorhanden. Bitte zuerst hochladen.");
                 return;
             }
-            const confirmed = confirm("Achtung! Sie sind dabei, das Feld 'Versandaktion' in allen Firmen auf 'Ja' zu setzen. Möchten Sie fortfahren?");
-            if (confirmed) {
-                callVersandaktionAction("FirmenUpdate", csvString);
-            }
+
+            const confirmed = confirm("Möchten Sie die Datei hochladen und die Verarbeitung starten? Bitte schließen Sie das Fenster während des Vorgangs nicht.");
+            if (!confirmed) return;
+
+            // 1. Loading anzeigen
+            showLoading(true);
+
+            // 2. Prozesskette starten
+            // Schritt A: Config ID holen und Datei hochladen
+            updateConfigAndUpload(currentFile)
+                .then(function(configId) {
+                    // Schritt B: Action aufrufen (Input ist hier die Config-ID)
+                    return callVersandaktionAction("FirmenUpdate", configId);
+                })
+                .then(function(output) {
+                    // Schritt C: Erfolg
+                    showLoading(false);
+                    document.getElementById("outputResult").innerText = output;
+                    alert("Erfolgreich abgeschlossen!\n\n" + output);
+                })
+                .catch(function(error) {
+                    // Fehlerbehandlung
+                    showLoading(false);
+                    console.error(error);
+                    alert("Ein Fehler ist aufgetreten:\n" + error.message);
+                });
         }
 
-        // Action-Aufruf für E-Mail Versand
+        // Hilfsfunktion: Sucht Config und lädt Datei hoch (gibt Promise zurück)
+        function updateConfigAndUpload(file) {
+            return new Promise(function(resolve, reject) {
+                const query = "?$select=dgp_configurationid&$filter=dgp_name eq 'Versandaktion CSV'";
+                parent.Xrm.WebApi.retrieveMultipleRecords("dgp_configuration", query).then(
+                    function success(result) {
+                        if (result.entities.length > 0) {
+                            const configId = result.entities[0].dgp_configurationid;
+                            
+                            // Upload starten und auf Abschluss warten
+                            uploadFileToDataverse(configId, file).then(
+                                function() {
+                                    resolve(configId); // ID zurückgeben für den nächsten Schritt
+                                },
+                                function(err) {
+                                    reject(err);
+                                }
+                            );
+                        } else {
+                            reject(new Error("Konfigurationsdatensatz 'Versandaktion CSV' nicht gefunden."));
+                        }
+                    },
+                    function error(error) {
+                        reject(error);
+                    }
+                );
+            });
+        }
+
+        // Hilfsfunktion: Upload via XMLHttpRequest in Dateifeld (gibt Promise zurück)
+        function uploadFileToDataverse(id, file) {
+            return new Promise(function(resolve, reject) {
+                const clientUrl = parent.Xrm.Utility.getGlobalContext().getClientUrl();
+                // ACHTUNG: Prüfe, ob 'dgp_configurations' der korrekte Plural-Name in deiner Umgebung ist
+                const url = clientUrl + "/api/data/v9.2/dgp_configurations(" + id + ")/dgp_annotation";
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const req = new XMLHttpRequest();
+                    req.open("PATCH", url, true);
+                    req.setRequestHeader("Content-Type", "application/octet-stream");
+                    req.setRequestHeader("x-ms-file-name", file.name);
+
+                    req.onreadystatechange = function () {
+                        if (req.readyState === 4) {
+                            if (req.status === 204) {
+                                resolve(); // Upload erfolgreich
+                            } else {
+                                reject(new Error("Upload Fehler: " + req.statusText + " (" + req.status + ") - " + req.responseText));
+                            }
+                        }
+                    };
+                    // Binären Inhalt senden
+                    req.send(new Uint8Array(e.target.result));
+                };
+                reader.onerror = function(e) { reject(new Error("Fehler beim Lesen der Datei.")); };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // --- E-Mail Versand Logik ---
         function sendTemplate() {
             const selectedId = document.getElementById("templateSelect").value;
             if (!selectedId) {
@@ -313,14 +447,22 @@
                 return;
             }
 
-            // Kunden zählen, die dgp_mailingcampaign_logic befüllt haben
-            parent.Xrm.WebApi.retrieveMultipleRecords("account", "?$select=accountid&$filter=dgp_mailingcampaign_logic ne null").then(
+            parent.Xrm.WebApi.retrieveMultipleRecords("account", "?$select=accountid&$filter=dgp_mailingcampaign_logic eq true").then(
                 function success(result) {
                     const count = result.entities.length;
                     const confirmed = confirm(`Es werden E-Mails an ${count} Firmen versendet. Sind Sie sicher?`);
                     if (confirmed) {
-                        // Template GUID als Input übergeben
-                        callVersandaktionAction("EmailVersenden", selectedId);
+                        showLoading(true);
+                        // Hier rufen wir auch die Action auf, aber mit der Template ID als Input
+                        callVersandaktionAction("EmailVersenden", selectedId)
+                            .then(function(output) {
+                                showLoading(false);
+                                alert("E-Mail Versand Ergebnis: " + output);
+                            })
+                            .catch(function(error) {
+                                showLoading(false);
+                                alert("Fehler beim E-Mail Versand: " + error.message);
+                            });
                     }
                 },
                 function error(error) {
@@ -329,42 +471,66 @@
             );
         }
 
-        // Gemeinsame Funktion für Action-Aufruf
-        function callVersandaktionAction(type, input) {
-            var request = {
-                Type: type,
-                Input: input,
-                getMetadata: function () {
-                    return {
-                        boundParameter: null,
-                        parameterTypes: {
-                            Type: { typeName: "Edm.String", structuralProperty: 1 },
-                            Input: { typeName: "Edm.String", structuralProperty: 1 }
-                        },
-                        operationType: 0,
-                        operationName: "dgp_VersandaktionAction"
-                    };
-                }
-            };
+       function callVersandaktionAction(type, input) {
+            return new Promise(function(resolve, reject) {
+                var request = {
+                    Type: type,
+                    Input: input,
+                    getMetadata: function () {
+                        return {
+                            boundParameter: null,
+                            parameterTypes: {
+                                Type: { typeName: "Edm.String", structuralProperty: 1 },
+                                Input: { typeName: "Edm.String", structuralProperty: 1 }
+                            },
+                            operationType: 0,
+                            operationName: "dgp_VersandaktionAction"
+                        };
+                    }
+                };
 
-            parent.Xrm.WebApi.online.execute(request).then(
-                function success(response) {
-                    response.json().then(function (result) {
-                        let outputValue = result.Output || result["dgp_Output"] || result["output"] || "Kein Output gefunden";
-                        alert("Ergebnis: " + outputValue);
-                    });
-                },
-                function error(error) {
-                    console.error(error.message);
-                    alert("Fehler beim Ausführen der Action: " + error.message);
-                }
-            );
+                parent.Xrm.WebApi.online.execute(request).then(
+                    function success(response) {
+                        if (response.ok) {
+                            response.json().then(function (result) {
+                                console.log("Vollständige Server-Antwort:", result); // Für F12 Entwicklertools
+
+                                // 1. Versuche bekannte Schreibweisen
+                                let outputValue = result.Output || result["dgp_Output"] || result["output"];
+
+                                // 2. Falls leer, suche dynamisch nach einem Key, der 'Output' enthält
+                                if (!outputValue) {
+                                    const keys = Object.keys(result);
+                                    const fuzzyKey = keys.find(k => k.toLowerCase().includes("output"));
+                                    if (fuzzyKey) {
+                                        outputValue = result[fuzzyKey];
+                                    }
+                                }
+
+                                // 3. Ergebnis oder Debug-Hilfe zurückgeben
+                                if (outputValue) {
+                                    resolve(outputValue);
+                                } else {
+                                    // Zeigt dir genau an, was zurückkam, damit du den Key siehst
+                                    resolve("Kein Output-Feld erkannt. Server-Antwort war: " + JSON.stringify(result));
+                                }
+                            });
+                        } else {
+                            reject(new Error("Action Aufruf fehlgeschlagen: " + response.statusText));
+                        }
+                    },
+                    function error(error) {
+                        reject(error);
+                    }
+                );
+            });
         }
 
-        // Templates laden
+        // --- Init ---
         window.onload = function () {
             loadTemplates();
         };
+
         function loadTemplates() {
             parent.Xrm.WebApi.retrieveMultipleRecords("template", "?$select=title,body,templateid&$filter=templatetypecode eq 'account'").then(
                 function success(result) {
@@ -383,6 +549,7 @@
                 }
             );
         }
+
         function showTemplate() {
             const selectedId = document.getElementById("templateSelect").value;
             let content = selectedId ? templates[selectedId] : "Template wird hier angezeigt...";
