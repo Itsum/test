@@ -6,216 +6,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Versandaktionen</title>
     <style>
-        body {
-            margin: 0;
-            font-family: "Segoe UI", Arial, sans-serif;
-            background-color: #faf9f8;
-        }
+        /* --- Bestehende Styles (unverändert) --- */
+        body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background-color: #faf9f8; }
+        .layout { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background-color: #f3f2f1; padding: 20px; border-right: 1px solid #ddd; }
+        .sidebar h3 { margin-bottom: 15px; font-size: 18px; color: #323130; }
+        .sidebar ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar li { display: flex; align-items: center; gap: 10px; padding: 12px; background: #fff; margin-bottom: 10px; border-radius: 6px; cursor: pointer; font-size: 16px; transition: background 0.3s, transform 0.2s; }
+        .sidebar li:hover { background: #e1f3ff; transform: translateX(4px); }
+        .sidebar li i { font-size: 20px; color: #0078d4; }
+        .content { flex: 1; padding: 30px; }
+        h2 { margin-bottom: 10px; color: #323130; }
+        p.description { margin-bottom: 20px; color: #605e5c; font-size: 14px; }
+        .upload-box { border: 3px dashed #0078d4; padding: 50px; text-align: center; border-radius: 10px; background: #fff; margin-bottom: 20px; cursor: pointer; transition: all 0.3s ease; font-size: 18px; color: #323130; }
+        .upload-box.dragover { background-color: #e1f3ff; border-color: #005a9e; }
+        .upload-box i { font-size: 60px; color: #0078d4; display: block; margin-bottom: 15px; }
+        
+        select { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; margin-top: 5px; margin-bottom: 15px; background-color: #fff; transition: border-color 0.3s; }
+        select:focus { border-color: #0078d4; outline: none; }
+        label { font-weight: 600; font-size: 14px; color: #323130; display: block; margin-top: 15px; }
 
-        .layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 260px;
-            background-color: #f3f2f1;
-            padding: 20px;
-            border-right: 1px solid #ddd;
-        }
-
-        .sidebar h3 {
-            margin-bottom: 15px;
-            font-size: 18px;
-            color: #323130;
-        }
-
-        .sidebar ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .sidebar li {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px;
-            background: #fff;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s, transform 0.2s;
-        }
-
-        .sidebar li:hover {
-            background: #e1f3ff;
-            transform: translateX(4px);
-        }
-
-        .sidebar li i {
-            font-size: 20px;
-            color: #0078d4;
-        }
-
-        /* Content */
-        .content {
-            flex: 1;
-            padding: 30px;
-        }
-
-        h2 {
-            margin-bottom: 10px;
-            color: #323130;
-        }
-
-        p.description {
-            margin-bottom: 20px;
-            color: #605e5c;
-            font-size: 14px;
-        }
-
-        /* Upload Box */
-        .upload-box {
-            border: 3px dashed #0078d4;
-            padding: 50px;
-            text-align: center;
-            border-radius: 10px;
-            background: #fff;
-            margin-bottom: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 18px;
-            color: #323130;
-        }
-
-        .upload-box.dragover {
-            background-color: #e1f3ff;
-            border-color: #005a9e;
-        }
-
-        .upload-box i {
-            font-size: 60px;
-            color: #0078d4;
-            display: block;
-            margin-bottom: 15px;
-        }
-
-        /* Dropdown */
-        select {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            margin-top: 10px;
-            margin-bottom: 15px;
-            background-color: #fff;
-            transition: border-color 0.3s;
-        }
-
-        select:focus {
-            border-color: #0078d4;
-            outline: none;
-        }
-
-        #templateDisplay {
-            padding: 15px;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            min-height: 60px;
-        }
-
-        .hint {
-            font-size: 12px;
-            color: #605e5c;
-            margin-top: 8px;
-        }
-
-        /* Buttons */
-        .button-group {
-            display: flex;
-            gap: 12px;
-        }
-
-        .sticky {
-            position: sticky;
-            top: 0;
-            background: #faf9f8;
-            padding: 10px 0;
-            z-index: 10;
-        }
-
-        button {
-            background-color: #0078d4;
-            color: #fff;
-            border: none;
-            padding: 12px 18px;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        button:hover {
-            background-color: #005a9e;
-        }
-
-        /* Table */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 10px;
-        }
-
-        th {
-            background: #f3f2f1;
-        }
-
-        #loadingOverlay {
-            display: none;
-            /* Standardmäßig ausgeblendet */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            color: #323130;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #0078d4;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
+        #templateDisplay { padding: 15px; background: #fff; border: 1px solid #ddd; border-radius: 6px; min-height: 60px; }
+        .hint { font-size: 12px; color: #605e5c; margin-top: 8px; }
+        .button-group { display: flex; gap: 12px; margin-top: 20px; }
+        .sticky { position: sticky; top: 0; background: #faf9f8; padding: 10px 0; z-index: 10; }
+        button { background-color: #0078d4; color: #fff; border: none; padding: 12px 18px; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
+        button:hover { background-color: #005a9e; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; }
+        th { background: #f3f2f1; }
+        #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; color: #323130; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0078d4; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 
@@ -224,7 +46,7 @@
         <div class="spinner"></div>
         <h2>Verarbeitung läuft...</h2>
         <p>Bitte schließen Sie dieses Fenster nicht.</p>
-        <p><small>Die Daten werden hochgeladen und verarbeitet.</small></p>
+        <p><small>Die Daten werden verarbeitet.</small></p>
     </div>
     <div class="layout">
         <aside class="sidebar">
@@ -235,13 +57,10 @@
             </ul>
         </aside>
         <main class="content">
-            <!-- CSV Section -->
             <div id="csvSection">
                 <h2>Firmen Update: Versandaktion = Ja</h2>
                 <p class="description">
-                    Bitte laden Sie eine CSV-Datei hoch, die die Spalten <strong>ID, Name, Versandaktion</strong>
-                    enthält.
-                    In der Spalte <strong>Versandaktion</strong> muss für alle Firmen <strong>Ja</strong> stehen.
+                    Bitte laden Sie eine CSV-Datei hoch (ID, Name, Versandaktion).
                 </p>
                 <div class="upload-box" id="dropZone">
                     <i>🏢</i>
@@ -249,7 +68,6 @@
                 </div>
                 <input type="file" id="csvFile" accept=".csv" style="display:none" />
 
-                <!-- Sticky Button -->
                 <div class="button-group sticky">
                     <button onclick="confirmAndSend()">Firmen updaten</button>
                 </div>
@@ -258,18 +76,36 @@
                 <pre id="outputResult"></pre>
             </div>
 
-            <!-- Template Section -->
             <div id="templateSection" style="display:none">
                 <h2>E-Mail Versand</h2>
                 <p class="description">
-                    Alle Firmen, bei denen <strong>Versandaktion = Ja</strong> gesetzt ist, erhalten die ausgewählte
-                    E-Mail-Vorlage.
-                    <br><strong>Tipp:</strong> Testen Sie den Versand zuerst mit 1–3 Firmen, bevor Sie alle anschreiben.
+                    Konfigurieren Sie den Versand für alle Firmen mit <strong>Versandaktion = Ja</strong>.
                 </p>
+
+                <div style="background: #eef6fb; padding: 15px; border-radius: 8px; border: 1px solid #c8e0f5; margin-bottom: 20px;">
+                    <h3 style="margin-top:0; font-size:16px;">1. Absender definieren</h3>
+                    
+                    <label for="senderTypeSelect">Absender Typ:</label>
+                    <select id="senderTypeSelect" onchange="onSenderTypeChange()">
+                        <option value="">-- Bitte wählen --</option>
+                        <option value="systemuser">Mitarbeiter (Employee)</option>
+                        <option value="dgp_usergroup">Benutzergruppe (User Group)</option>
+                    </select>
+
+                    <label for="senderValueSelect">Absender wählen:</label>
+                    <select id="senderValueSelect" disabled>
+                        <option value="">-- Zuerst Typ wählen --</option>
+                    </select>
+                </div>
+
+                <h3 style="font-size:16px;">2. E-Mail Vorlage wählen</h3>
+                <label for="templateSelect">E-Mail Template:</label>
                 <select id="templateSelect" onchange="showTemplate()"></select>
-                <div id="templateDisplay">Template wird hier angezeigt...</div>
-                <p class="hint">Hinweis: Die Vorschau kann von der tatsächlichen E-Mail abweichen. Formatierungen oder
-                    Bilder werden ggf. nicht korrekt angezeigt.</p>
+                
+                <div id="templateDisplay">Template Vorschau...</div>
+                
+                <p class="hint">Hinweis: Die Vorschau kann von der tatsächlichen E-Mail abweichen.</p>
+                
                 <div class="button-group">
                     <button onclick="sendTemplate()">E-Mail versenden</button>
                 </div>
@@ -292,35 +128,18 @@
             document.getElementById('loadingOverlay').style.display = isVisible ? 'flex' : 'none';
         }
 
-        // --- Drag & Drop und File Input ---
+        // --- Drag & Drop ---
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('csvFile');
-
         dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            if (file) handleFile(file);
-        });
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) handleFile(file);
-        });
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); const file = e.dataTransfer.files[0]; if (file) handleFile(file); });
+        fileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) handleFile(file); });
 
         function handleFile(file) {
-            if (!file.name.toLowerCase().endsWith(".csv")) {
-                alert("Nur CSV-Dateien sind erlaubt!");
-                return;
-            }
-            currentFile = file; // Datei global speichern für späteren Upload
-            
-            // Vorschau rendern
+            if (!file.name.toLowerCase().endsWith(".csv")) { alert("Nur CSV erlaubt!"); return; }
+            currentFile = file;
             const reader = new FileReader();
             reader.onload = function (e) {
                 csvString = e.target.result;
@@ -334,144 +153,147 @@
             let html = "<table><thead><tr>";
             rows[0].forEach(header => html += `<th>${header}</th>`);
             html += "</tr></thead><tbody>";
-            rows.slice(1).forEach(row => {
-                if (row.length > 1) {
-                    html += "<tr>";
-                    row.forEach(cell => html += `<td>${cell}</td>`);
-                    html += "</tr>";
-                }
-            });
+            rows.slice(1).forEach(row => { if (row.length > 1) { html += "<tr>"; row.forEach(cell => html += `<td>${cell}</td>`); html += "</tr>"; } });
             html += "</tbody></table>";
             document.getElementById("csvTableContainer").innerHTML = html;
         }
 
-        // --- Hauptlogik: Upload & Action Chain ---
-        function confirmAndSend() {
-            if (!currentFile) {
-                alert("Keine CSV-Datei vorhanden. Bitte zuerst hochladen.");
+        // --- Absender Logik ---
+        function onSenderTypeChange() {
+            const type = document.getElementById("senderTypeSelect").value;
+            const valueSelect = document.getElementById("senderValueSelect");
+            
+            valueSelect.innerHTML = "<option value=''>Laden...</option>";
+            valueSelect.disabled = true;
+
+            if (!type) {
+                valueSelect.innerHTML = "<option value=''>-- Zuerst Typ wählen --</option>";
                 return;
             }
 
-            const confirmed = confirm("Möchten Sie die Datei hochladen und die Verarbeitung starten? Bitte schließen Sie das Fenster während des Vorgangs nicht.");
-            if (!confirmed) return;
+            let entityName = type === "systemuser" ? "systemuser" : "dgp_usergroup";
+            let query = type === "systemuser" 
+                ? "?$select=fullname,systemuserid&$filter=isdisabled eq false&$orderby=fullname asc" 
+                : "?$select=dgp_name,dgp_usergroupid&$orderby=dgp_name asc";
+            let idAttr = type === "systemuser" ? "systemuserid" : "dgp_usergroupid";
+            let nameAttr = type === "systemuser" ? "fullname" : "dgp_name";
 
-            // 1. Loading anzeigen
-            showLoading(true);
-
-            // 2. Prozesskette starten
-            // Schritt A: Config ID holen und Datei hochladen
-            updateConfigAndUpload(currentFile)
-                .then(function(configId) {
-                    // Schritt B: Action aufrufen (Input ist hier die Config-ID)
-                    return callVersandaktionAction("FirmenUpdate", configId);
-                })
-                .then(function(output) {
-                    // Schritt C: Erfolg
-                    showLoading(false);
-                    document.getElementById("outputResult").innerText = output;
-                    alert("Erfolgreich abgeschlossen!\n\n" + output);
-                })
-                .catch(function(error) {
-                    // Fehlerbehandlung
-                    showLoading(false);
-                    console.error(error);
-                    alert("Ein Fehler ist aufgetreten:\n" + error.message);
-                });
-        }
-
-        // Hilfsfunktion: Sucht Config und lädt Datei hoch (gibt Promise zurück)
-        function updateConfigAndUpload(file) {
-            return new Promise(function(resolve, reject) {
-                const query = "?$select=dgp_configurationid&$filter=dgp_name eq 'Versandaktion CSV'";
-                parent.Xrm.WebApi.retrieveMultipleRecords("dgp_configuration", query).then(
-                    function success(result) {
-                        if (result.entities.length > 0) {
-                            const configId = result.entities[0].dgp_configurationid;
-                            
-                            // Upload starten und auf Abschluss warten
-                            uploadFileToDataverse(configId, file).then(
-                                function() {
-                                    resolve(configId); // ID zurückgeben für den nächsten Schritt
-                                },
-                                function(err) {
-                                    reject(err);
-                                }
-                            );
-                        } else {
-                            reject(new Error("Konfigurationsdatensatz 'Versandaktion CSV' nicht gefunden."));
-                        }
-                    },
-                    function error(error) {
-                        reject(error);
-                    }
-                );
-            });
-        }
-
-        // Hilfsfunktion: Upload via XMLHttpRequest in Dateifeld (gibt Promise zurück)
-        function uploadFileToDataverse(id, file) {
-            return new Promise(function(resolve, reject) {
-                const clientUrl = parent.Xrm.Utility.getGlobalContext().getClientUrl();
-                // ACHTUNG: Prüfe, ob 'dgp_configurations' der korrekte Plural-Name in deiner Umgebung ist
-                const url = clientUrl + "/api/data/v9.2/dgp_configurations(" + id + ")/dgp_annotation";
-
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const req = new XMLHttpRequest();
-                    req.open("PATCH", url, true);
-                    req.setRequestHeader("Content-Type", "application/octet-stream");
-                    req.setRequestHeader("x-ms-file-name", file.name);
-
-                    req.onreadystatechange = function () {
-                        if (req.readyState === 4) {
-                            if (req.status === 204) {
-                                resolve(); // Upload erfolgreich
-                            } else {
-                                reject(new Error("Upload Fehler: " + req.statusText + " (" + req.status + ") - " + req.responseText));
-                            }
-                        }
-                    };
-                    // Binären Inhalt senden
-                    req.send(new Uint8Array(e.target.result));
-                };
-                reader.onerror = function(e) { reject(new Error("Fehler beim Lesen der Datei.")); };
-                reader.readAsArrayBuffer(file);
-            });
-        }
-
-        // --- E-Mail Versand Logik ---
-        function sendTemplate() {
-            const selectedId = document.getElementById("templateSelect").value;
-            if (!selectedId) {
-                alert("Bitte ein Template auswählen!");
-                return;
-            }
-
-            parent.Xrm.WebApi.retrieveMultipleRecords("account", "?$select=accountid&$filter=dgp_mailingcampaign_logic eq true").then(
+            parent.Xrm.WebApi.retrieveMultipleRecords(entityName, query).then(
                 function success(result) {
-                    const count = result.entities.length;
-                    const confirmed = confirm(`Es werden E-Mails an ${count} Firmen versendet. Sind Sie sicher?`);
-                    if (confirmed) {
-                        showLoading(true);
-                        // Hier rufen wir auch die Action auf, aber mit der Template ID als Input
-                        callVersandaktionAction("EmailVersenden", selectedId)
-                            .then(function(output) {
-                                showLoading(false);
-                                alert("E-Mail Versand Ergebnis: " + output);
-                            })
-                            .catch(function(error) {
-                                showLoading(false);
-                                alert("Fehler beim E-Mail Versand: " + error.message);
-                            });
+                    valueSelect.innerHTML = "<option value=''>-- Bitte wählen --</option>";
+                    if (result.entities.length === 0) {
+                        const opt = document.createElement("option");
+                        opt.text = "Keine Datensätze gefunden";
+                        valueSelect.add(opt);
+                    } else {
+                        result.entities.forEach(function(record) {
+                            const opt = document.createElement("option");
+                            opt.value = record[idAttr];
+                            opt.text = record[nameAttr] || "Ohne Name";
+                            valueSelect.add(opt);
+                        });
+                        valueSelect.disabled = false;
                     }
                 },
-                function error(error) {
-                    alert("Fehler beim Abrufen der Kunden: " + error.message);
+                function error(err) {
+                    alert("Fehler beim Laden: " + err.message);
                 }
             );
         }
 
-       function callVersandaktionAction(type, input) {
+        // --- CSV Upload ---
+        function confirmAndSend() {
+            if (!currentFile) { alert("Keine CSV-Datei vorhanden."); return; }
+            if (!confirm("Starten?")) return;
+            showLoading(true);
+            updateConfigAndUpload(currentFile)
+                .then(configId => callVersandaktionAction("FirmenUpdate", configId))
+                .then(output => { showLoading(false); document.getElementById("outputResult").innerText = output; alert("Fertig!\n" + output); })
+                .catch(err => { showLoading(false); alert("Fehler:\n" + err.message); });
+        }
+
+        function updateConfigAndUpload(file) {
+            return new Promise((resolve, reject) => {
+                parent.Xrm.WebApi.retrieveMultipleRecords("dgp_configuration", "?$select=dgp_configurationid&$filter=dgp_name eq 'Versandaktion CSV'").then(
+                    res => {
+                        if (res.entities.length > 0) {
+                            uploadFileToDataverse(res.entities[0].dgp_configurationid, file).then(() => resolve(res.entities[0].dgp_configurationid), reject);
+                        } else reject(new Error("Config nicht gefunden."));
+                    }, reject
+                );
+            });
+        }
+
+        function uploadFileToDataverse(id, file) {
+            return new Promise((resolve, reject) => {
+                const url = parent.Xrm.Utility.getGlobalContext().getClientUrl() + "/api/data/v9.2/dgp_configurations(" + id + ")/dgp_annotation";
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const req = new XMLHttpRequest();
+                    req.open("PATCH", url, true);
+                    req.setRequestHeader("Content-Type", "application/octet-stream");
+                    req.setRequestHeader("x-ms-file-name", file.name);
+                    req.onreadystatechange = () => { if (req.readyState === 4) (req.status === 204 ? resolve() : reject(new Error(req.statusText))); };
+                    req.send(new Uint8Array(e.target.result));
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // --- E-Mail Versand Logik (ANGEPASST) ---
+        function sendTemplate() {
+            const templateSelect = document.getElementById("templateSelect");
+            const senderTypeSelect = document.getElementById("senderTypeSelect");
+            const senderValueSelect = document.getElementById("senderValueSelect");
+
+            const templateId = templateSelect.value;
+            const senderType = senderTypeSelect.value;
+            const senderId = senderValueSelect.value;
+
+            // Validierung
+            if (!senderType || !senderId) {
+                alert("Bitte wählen Sie zuerst einen Absender aus.");
+                return;
+            }
+            if (!templateId) {
+                alert("Bitte wählen Sie ein E-Mail Template aus.");
+                return;
+            }
+
+            // HIER DIE ÄNDERUNG: Wir holen uns den angezeigten Text für das Bestätigungsfenster
+            const templateName = templateSelect.options[templateSelect.selectedIndex].text;
+            const senderName = senderValueSelect.options[senderValueSelect.selectedIndex].text;
+            // Optional: Typ lesbar machen
+            const typeLabel = senderType === "systemuser" ? "Mitarbeiter" : "Benutzergruppe";
+
+            const inputPayload = {
+                TemplateId: templateId,
+                SenderType: senderType,
+                SenderId: senderId
+            };
+            const inputString = JSON.stringify(inputPayload);
+
+            // Bestätigungsdialog mit schönen Namen
+            const msg = `Möchten Sie den E-Mail Versand wirklich starten?\n\n` +
+                        `👤 Absender: ${senderName} (${typeLabel})\n` +
+                        `✉️ Vorlage: ${templateName}`;
+
+            if (confirm(msg)) {
+                showLoading(true);
+                callVersandaktionAction("EmailVersenden", inputString)
+                    .then(output => {
+                        showLoading(false);
+                        // Der Output kommt ja jetzt schon formatiert vom C# Plugin
+                        alert(output); 
+                    })
+                    .catch(err => {
+                        showLoading(false);
+                        alert("Fehler: " + err.message);
+                    });
+            }
+        }
+
+        function callVersandaktionAction(type, input) {
             return new Promise(function(resolve, reject) {
                 var request = {
                     Type: type,
@@ -488,40 +310,23 @@
                         };
                     }
                 };
-
                 parent.Xrm.WebApi.online.execute(request).then(
                     function success(response) {
                         if (response.ok) {
                             response.json().then(function (result) {
-                                console.log("Vollständige Server-Antwort:", result); // Für F12 Entwicklertools
-
-                                // 1. Versuche bekannte Schreibweisen
                                 let outputValue = result.Output || result["dgp_Output"] || result["output"];
-
-                                // 2. Falls leer, suche dynamisch nach einem Key, der 'Output' enthält
                                 if (!outputValue) {
                                     const keys = Object.keys(result);
                                     const fuzzyKey = keys.find(k => k.toLowerCase().includes("output"));
-                                    if (fuzzyKey) {
-                                        outputValue = result[fuzzyKey];
-                                    }
+                                    if (fuzzyKey) outputValue = result[fuzzyKey];
                                 }
-
-                                // 3. Ergebnis oder Debug-Hilfe zurückgeben
-                                if (outputValue) {
-                                    resolve(outputValue);
-                                } else {
-                                    // Zeigt dir genau an, was zurückkam, damit du den Key siehst
-                                    resolve("Kein Output-Feld erkannt. Server-Antwort war: " + JSON.stringify(result));
-                                }
+                                resolve(outputValue || "Kein Output, aber OK.");
                             });
                         } else {
-                            reject(new Error("Action Aufruf fehlgeschlagen: " + response.statusText));
+                            reject(new Error("Action Error: " + response.statusText));
                         }
                     },
-                    function error(error) {
-                        reject(error);
-                    }
+                    function error(error) { reject(error); }
                 );
             });
         }
@@ -536,25 +341,24 @@
                 function success(result) {
                     const select = document.getElementById("templateSelect");
                     select.innerHTML = "<option value=''>-- Bitte wählen --</option>";
-                    result.entities.forEach(template => {
-                        templates[template.templateid] = template.body;
-                        const option = document.createElement("option");
-                        option.value = template.templateid;
-                        option.textContent = template.title;
-                        select.appendChild(option);
+                    result.entities.forEach(t => {
+                        templates[t.templateid] = t.body;
+                        const opt = document.createElement("option");
+                        opt.value = t.templateid;
+                        opt.textContent = t.title;
+                        select.appendChild(opt);
                     });
                 },
-                function error(error) {
-                    alert("Templates konnten nicht geladen werden.");
-                }
+                e => alert("Templates laden fehlgeschlagen.")
             );
         }
 
         function showTemplate() {
-            const selectedId = document.getElementById("templateSelect").value;
-            let content = selectedId ? templates[selectedId] : "Template wird hier angezeigt...";
-            content = content.replace(/<!\[CDATA\[/g, "").replace(/\]\]>/g, "");
-            document.getElementById("templateDisplay").innerHTML = content;
+            const id = document.getElementById("templateSelect").value;
+            let c = id ? templates[id] : "Template Vorschau...";
+            c = c.replace(/<!\[CDATA\[/g, "").replace(/\]\]>/g, "");
+            document.getElementById("templateDisplay").innerHTML = c;
         }
     </script>
 </body>
+</html>
